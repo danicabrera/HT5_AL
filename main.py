@@ -27,7 +27,7 @@ class procesador():
 
 env = simpy.core.Environment(initial_time=0)
 
-RAM = simpy.Container(env, init=100, capacity=100)
+RAM = simpy.Container(env, init=200, capacity=200)
 numProcesos = int(input("Ingrese el numero de procesos a hacer: "))
 waitList = []
 readyList = []
@@ -53,41 +53,102 @@ def asignar(numero):
                 RAM.get(procesoN.memoriaNecesitada)
 
 asignar(numProcesos)
+def procesoMortal(numProcesos):
+    while(numProcesos>0):
+        procesoActual = proceso()
+        procesoNext = proceso()
+        ##Proceso del procesador
+        try:
+            procesoNext = readyList.pop()
+            procesoNext.estado = "Waiting"
+            waitList.append(procesoNext)
+        except:
+            asignar(1)
 
-while(numProcesos>0):
-    procesoActual = proceso()
-    procesoNext = proceso()
-    ##Proceso del procesador
-    try:
-        procesoNext = readyList.pop()
-        procesoNext.estado = "Waiting"
-        waitList.append(procesoNext)
-    except:
-        asignar(1)
-
-    try:
-        procesoActual = waitList.pop()
-        procesoActual.estado = "Running"
-    except:
-        print("No hay en waitlist")
+        try:
+            procesoActual = waitList.pop()
+            procesoActual.estado = "Running"
+        except:
+            print("No hay en waitlist")
 
 
-    instrucRestantes = procesoActual.instrucciones - CPU.numInstrucciones
-    CPU.tiempo = CPU.tiempo + 1
-    if(instrucRestantes <= 0):
-        procesoActual.instrucciones = instrucRestantes
-        procesoActual.estado = "Terminated"
-        RAM.put(procesoActual.memoriaNecesitada)
-        numProcesos = numProcesos - 1
-    else:
-        procesoActual.instrucciones = instrucRestantes
-        decis = randint(1, 2)
-        if decis == 1:
-            procesoActual.estado = "Waiting"
-            waitList.append(procesoActual)
+        instrucRestantes = procesoActual.instrucciones - CPU.numInstrucciones
+
+        if(instrucRestantes <= 0):
+            procesoActual.instrucciones = instrucRestantes
+            procesoActual.estado = "Terminated"
+            RAM.put(procesoActual.memoriaNecesitada)
+            numProcesos = numProcesos - 1
         else:
-            procesoActual.estado = "Ready"
-            readyList.append(procesoActual)
+            procesoActual.instrucciones = instrucRestantes
+            decis = randint(1, 2)
+            if decis == 1:
+                procesoActual.estado = "Waiting"
+                waitList.append(procesoActual)
+            else:
+                procesoActual.estado = "Ready"
+                readyList.append(procesoActual)
+
+        try:
+            procesoNext = readyList.pop()
+            procesoNext.estado = "Waiting"
+            waitList.append(procesoNext)
+        except:
+            asignar(1)
+
+        try:
+            procesoActual = waitList.pop()
+            procesoActual.estado = "Running"
+        except:
+            print("No hay en waitlist")
 
 
-print("El número de unidades de tiempo es de: ", CPU.tiempo)
+        instrucRestantes = procesoActual.instrucciones - CPU.numInstrucciones
+        CPU.tiempo = CPU.tiempo + 1
+        if(instrucRestantes <= 0):
+            procesoActual.instrucciones = instrucRestantes
+            procesoActual.estado = "Terminated"
+            RAM.put(procesoActual.memoriaNecesitada)
+            numProcesos = numProcesos - 1
+        else:
+            procesoActual.instrucciones = instrucRestantes
+            decis = randint(1, 2)
+            if decis == 1:
+                procesoActual.estado = "Waiting"
+                waitList.append(procesoActual)
+            else:
+                procesoActual.estado = "Ready"
+                readyList.append(procesoActual)
+
+
+    print("El número de unidades de tiempo es de: ", CPU.tiempo)
+    return CPU.tiempo
+
+op =2
+while op != 0:
+    print("Elige una de las siguientes opciones: ")
+    print("1. Simulacion")
+    print("2. Estadísticas")
+    print("3. Salida")
+
+    op = int(input("Elige la opcion que deseas: "))
+
+    if op == 1:
+        final = procesoMortal(numProcesos)
+        print(final)
+    elif op == 2:
+        num1 = procesoMortal(numProcesos)
+        num2 = procesoMortal(numProcesos)
+        num3 = procesoMortal(numProcesos)
+        num4 = procesoMortal(numProcesos)
+        num5 = procesoMortal(numProcesos)
+
+        numFinal = (num1 + num2 + num3 + num4 + num5) / 5
+
+        print("La media es de: ", numFinal)
+    elif op == 3:
+        print("Saliendo...")
+        op = 0;
+    else:
+        print("Equivocado intente de nuevo")
+
